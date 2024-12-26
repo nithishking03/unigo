@@ -1,3 +1,4 @@
+import React from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,10 +10,10 @@ import ParcelDelivery from "./pages/ParcelDelivery";
 import Travel from "./pages/Travel";
 
 const App = () => (
-  <TooltipProvider>
-    <Toaster />
-    <Sonner />
-    <BrowserRouter>
+  <BrowserRouter>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/transportation" element={<Transportation />} />
@@ -20,8 +21,8 @@ const App = () => (
         <Route path="/parcel-delivery" element={<ParcelDelivery />} />
         <Route path="/travel" element={<Travel />} />
       </Routes>
-    </BrowserRouter>
-  </TooltipProvider>
+    </TooltipProvider>
+  </BrowserRouter>
 );
 
 export default App;
