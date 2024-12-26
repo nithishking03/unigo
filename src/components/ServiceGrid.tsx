@@ -1,12 +1,12 @@
-import { Car, UtensilsCrossed, Package, Plane } from "lucide-react";
+import { Bike, UtensilsCrossed, Package, Car } from "lucide-react";
 import { ServiceCard } from "./ServiceCard";
 
 export const ServiceGrid = () => {
   const services = [
     {
-      title: "Transportation",
-      description: "Book bikes, cars, and autos for your daily commute",
-      icon: Car,
+      title: "Book Rides",
+      description: "Quick and affordable rides with bikes, cars, and autos",
+      icon: Bike,
       to: "/transportation",
     },
     {
@@ -16,15 +16,15 @@ export const ServiceGrid = () => {
       to: "/food-delivery",
     },
     {
-      title: "Parcel Delivery",
-      description: "Send packages quickly and securely",
+      title: "Send Parcels",
+      description: "Fast and secure parcel delivery services",
       icon: Package,
       to: "/parcel-delivery",
     },
     {
-      title: "Travel",
-      description: "Plan your trips with comfortable rides",
-      icon: Plane,
+      title: "Rent Vehicles",
+      description: "Rent bikes and cars for your needs",
+      icon: Car,
       to: "/travel",
     },
   ];

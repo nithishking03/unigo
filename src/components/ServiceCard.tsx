@@ -16,14 +16,14 @@ export const ServiceCard = ({ title, description, icon: Icon, to, className }: S
       to={to}
       className={cn(
         "block group p-6 bg-white rounded-xl shadow-sm border transition-all duration-200",
-        "hover:shadow-md hover:border-primary/20 hover:-translate-y-1",
+        "hover:shadow-lg hover:border-primary/20 hover:-translate-y-1",
         className
       )}
     >
-      <div className="w-12 h-12 mb-4 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-        <Icon className="w-6 h-6 text-primary" />
+      <div className="w-14 h-14 mb-4 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+        <Icon className="w-7 h-7 text-primary" />
       </div>
-      <h3 className="text-lg font-semibold mb-2 text-gray-900">{title}</h3>
+      <h3 className="text-xl font-semibold mb-2 text-gray-900">{title}</h3>
       <p className="text-gray-600">{description}</p>
     </Link>
   );
