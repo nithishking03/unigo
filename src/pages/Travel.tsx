@@ -11,22 +11,35 @@ import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInDays } from "date-fns";
 
+type VehicleType = "car" | "bike" | "auto";
+
+interface VehicleOption {
+  name: string;
+  price: number;
+}
+
+interface VehicleCategory {
+  type: VehicleType;
+  icon: any;
+  options: VehicleOption[];
+}
+
 const Travel = () => {
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { session } = useAuth();
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [isBooking, setIsBooking] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState<{
-    type: string;
+    type: VehicleType;
     model: string;
     price: number;
   } | null>(null);
 
-  const vehicles = [
+  const vehicles: VehicleCategory[] = [
     {
-      type: "Bike",
+      type: "bike",
       icon: Bike,
       options: [
         { name: "Honda Activa", price: 499 },
@@ -35,7 +48,7 @@ const Travel = () => {
       ],
     },
     {
-      type: "Car",
+      type: "car",
       icon: Car,
       options: [
         { name: "Swift Dzire", price: 1999 },
@@ -45,7 +58,7 @@ const Travel = () => {
     },
   ];
 
-  const handleBooking = async (vehicleType: string, model: string, pricePerDay: number) => {
+  const handleBooking = async (vehicleType: VehicleType, model: string, pricePerDay: number) => {
     if (!location || !startDate || !endDate) {
       toast({
         title: "Missing Information",
@@ -55,7 +68,7 @@ const Travel = () => {
       return;
     }
 
-    if (!user) {
+    if (!session?.user) {
       toast({
         title: "Authentication Required",
         description: "Please sign in to book a vehicle",
@@ -81,7 +94,7 @@ const Travel = () => {
       const { data, error } = await supabase
         .from('vehicle_rentals')
         .insert({
-          user_id: user.id,
+          user_id: session.user.id,
           vehicle_type: vehicleType,
           vehicle_model: model,
           pickup_location: location,
