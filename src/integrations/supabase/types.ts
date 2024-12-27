@@ -128,6 +128,48 @@ export type Database = {
           },
         ]
       }
+      vehicle_rentals: {
+        Row: {
+          created_at: string | null
+          end_date: string
+          id: string
+          pickup_location: string
+          start_date: string
+          status: Database["public"]["Enums"]["rental_status"] | null
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+          vehicle_model: string
+          vehicle_type: string
+        }
+        Insert: {
+          created_at?: string | null
+          end_date: string
+          id?: string
+          pickup_location: string
+          start_date: string
+          status?: Database["public"]["Enums"]["rental_status"] | null
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+          vehicle_model: string
+          vehicle_type: string
+        }
+        Update: {
+          created_at?: string | null
+          end_date?: string
+          id?: string
+          pickup_location?: string
+          start_date?: string
+          status?: Database["public"]["Enums"]["rental_status"] | null
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+          vehicle_model?: string
+          vehicle_type?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -136,6 +178,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      rental_status: "pending" | "confirmed" | "completed" | "cancelled"
       ride_status:
         | "pending"
         | "accepted"

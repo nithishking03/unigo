@@ -10,8 +10,9 @@ import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInDays } from "date-fns";
+import { Tables } from "@/integrations/supabase/types";
 
-type VehicleType = "car" | "bike" | "auto";
+type VehicleType = "car" | "bike";
 
 interface VehicleOption {
   name: string;
@@ -91,18 +92,20 @@ const Travel = () => {
     setSelectedVehicle({ type: vehicleType, model, price: pricePerDay });
 
     try {
+      const rental: Omit<Tables<'vehicle_rentals'>, 'id' | 'created_at' | 'updated_at'> = {
+        user_id: session.user.id,
+        vehicle_type: vehicleType,
+        vehicle_model: model,
+        pickup_location: location,
+        start_date: startDate.toISOString(),
+        end_date: endDate.toISOString(),
+        total_amount: pricePerDay * days,
+        status: 'pending'
+      };
+
       const { data, error } = await supabase
         .from('vehicle_rentals')
-        .insert({
-          user_id: session.user.id,
-          vehicle_type: vehicleType,
-          vehicle_model: model,
-          pickup_location: location,
-          start_date: startDate.toISOString(),
-          end_date: endDate.toISOString(),
-          total_amount: pricePerDay * days,
-          status: 'pending'
-        })
+        .insert(rental)
         .select()
         .single();
 
