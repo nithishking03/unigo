@@ -1,7 +1,16 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { LocationInput } from "./LocationInput";
 
 export const Hero = () => {
+  const [location, setLocation] = useState("");
+  const [coordinates, setCoordinates] = useState<{ lat: string; lon: string } | undefined>();
+
+  const handleLocationChange = (value: string, coords?: { lat: string; lon: string }) => {
+    setLocation(value);
+    setCoordinates(coords);
+  };
+
   return (
     <div className="relative bg-gradient-to-br from-[#9b87f5] to-[#8B5CF6] text-white py-20 md:py-32 overflow-hidden">
       <div className="absolute inset-0 bg-[url('/placeholder.svg')] opacity-10"></div>
@@ -19,8 +28,8 @@ export const Hero = () => {
           <div className="max-w-md mx-auto bg-white/10 backdrop-blur-md rounded-lg p-4 animate-fade-in">
             <LocationInput 
               placeholder="Enter your delivery location"
-              value=""
-              onChange={() => {}}
+              value={location}
+              onChange={handleLocationChange}
             />
           </div>
         </div>
