@@ -2,36 +2,120 @@ import { useState } from "react";
 import { NavBar } from "@/components/NavBar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Bike, Car, Calendar } from "lucide-react";
+import { ArrowLeft, Bike, Car, Calendar, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { LocationInput } from "@/components/LocationInput";
 import { DatePicker } from "@/components/DatePicker";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/components/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
+import { differenceInDays } from "date-fns";
 
 const Travel = () => {
+  const { toast } = useToast();
+  const { user } = useAuth();
   const [location, setLocation] = useState("");
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
+  const [isBooking, setIsBooking] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<{
+    type: string;
+    model: string;
+    price: number;
+  } | null>(null);
 
   const vehicles = [
     {
       type: "Bike",
       icon: Bike,
       options: [
-        { name: "Honda Activa", price: "499/day" },
-        { name: "Royal Enfield", price: "999/day" },
-        { name: "TVS Jupiter", price: "449/day" },
+        { name: "Honda Activa", price: 499 },
+        { name: "Royal Enfield", price: 999 },
+        { name: "TVS Jupiter", price: 449 },
       ],
     },
     {
       type: "Car",
       icon: Car,
       options: [
-        { name: "Swift Dzire", price: "1999/day" },
-        { name: "Hyundai i20", price: "1799/day" },
-        { name: "Toyota Innova", price: "2999/day" },
+        { name: "Swift Dzire", price: 1999 },
+        { name: "Hyundai i20", price: 1799 },
+        { name: "Toyota Innova", price: 2999 },
       ],
     },
   ];
+
+  const handleBooking = async (vehicleType: string, model: string, pricePerDay: number) => {
+    if (!location || !startDate || !endDate) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in all the required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to book a vehicle",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const days = differenceInDays(endDate, startDate) + 1;
+    if (days < 1) {
+      toast({
+        title: "Invalid Dates",
+        description: "End date must be after start date",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsBooking(true);
+    setSelectedVehicle({ type: vehicleType, model, price: pricePerDay });
+
+    try {
+      const { data, error } = await supabase
+        .from('vehicle_rentals')
+        .insert({
+          user_id: user.id,
+          vehicle_type: vehicleType,
+          vehicle_model: model,
+          pickup_location: location,
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
+          total_amount: pricePerDay * days,
+          status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Booking Successful!",
+        description: `Your ${model} has been booked from ${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`,
+      });
+
+      // Reset form
+      setLocation("");
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setSelectedVehicle(null);
+    } catch (error) {
+      console.error('Booking error:', error);
+      toast({
+        title: "Booking Failed",
+        description: "There was an error processing your booking. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -100,16 +184,28 @@ const Travel = () => {
                   {vehicle.options.map((option) => (
                     <div
                       key={option.name}
-                      className="flex items-center justify-between p-4 rounded-lg border hover:border-primary/20 hover:bg-primary/5 transition-colors cursor-pointer"
+                      className="flex items-center justify-between p-4 rounded-lg border hover:border-primary/20 hover:bg-primary/5 transition-colors"
                     >
                       <div>
                         <h3 className="font-semibold">{option.name}</h3>
                         <p className="text-sm text-gray-500">Available Now</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-primary">₹{option.price}</p>
-                        <Button size="sm" className="mt-2">
-                          Book Now
+                        <p className="font-semibold text-primary">₹{option.price}/day</p>
+                        <Button
+                          size="sm"
+                          className="mt-2"
+                          onClick={() => handleBooking(vehicle.type, option.name, option.price)}
+                          disabled={isBooking && selectedVehicle?.model === option.name}
+                        >
+                          {isBooking && selectedVehicle?.model === option.name ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Booking...
+                            </>
+                          ) : (
+                            'Book Now'
+                          )}
                         </Button>
                       </div>
                     </div>
