@@ -10,6 +10,7 @@ import Transportation from "./pages/Transportation";
 import FoodDelivery from "./pages/FoodDelivery";
 import ParcelDelivery from "./pages/ParcelDelivery";
 import Travel from "./pages/Travel";
+import Emergency from "./pages/Emergency";
 import Auth from "./pages/Auth";
 
 const App = () => (
@@ -57,6 +58,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Travel />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/emergency"
+            element={
+              <ProtectedRoute>
+                <Emergency />
               </ProtectedRoute>
             }
           />
