@@ -1,8 +1,26 @@
-import { Menu, User } from "lucide-react";
+import { Menu, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export const NavBar = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleSignOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    } else {
+      navigate("/auth");
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm">
       <div className="container mx-auto px-4">
@@ -26,6 +44,9 @@ export const NavBar = () => {
             </Link>
             <Button variant="ghost" size="icon" className="text-gray-600">
               <User className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" className="text-gray-600" onClick={handleSignOut}>
+              <LogOut className="h-5 w-5" />
             </Button>
           </div>
           
