@@ -78,39 +78,57 @@ export type Database = {
       parcel_deliveries: {
         Row: {
           created_at: string
+          delivery_instructions: string | null
           dropoff_address: string
+          estimated_delivery_time: string | null
           id: string
           package_details: string
           pickup_address: string
+          priority: string | null
           recipient_name: string
           recipient_phone: string
+          sender_name: string
+          sender_phone: string
           status: Database["public"]["Enums"]["parcel_status"] | null
           updated_at: string
           user_id: string
+          weight_category: string | null
         }
         Insert: {
           created_at?: string
+          delivery_instructions?: string | null
           dropoff_address: string
+          estimated_delivery_time?: string | null
           id?: string
           package_details: string
           pickup_address: string
+          priority?: string | null
           recipient_name: string
           recipient_phone: string
+          sender_name?: string
+          sender_phone?: string
           status?: Database["public"]["Enums"]["parcel_status"] | null
           updated_at?: string
           user_id: string
+          weight_category?: string | null
         }
         Update: {
           created_at?: string
+          delivery_instructions?: string | null
           dropoff_address?: string
+          estimated_delivery_time?: string | null
           id?: string
           package_details?: string
           pickup_address?: string
+          priority?: string | null
           recipient_name?: string
           recipient_phone?: string
+          sender_name?: string
+          sender_phone?: string
           status?: Database["public"]["Enums"]["parcel_status"] | null
           updated_at?: string
           user_id?: string
+          weight_category?: string | null
         }
         Relationships: []
       }

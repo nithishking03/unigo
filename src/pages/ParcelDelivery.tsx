@@ -1,32 +1,12 @@
 import React from 'react';
 import { NavBar } from "@/components/NavBar";
-import { Package, ArrowLeft, Loader2 } from "lucide-react";
+import { Package, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth } from "@/components/AuthProvider";
-
-const formSchema = z.object({
-  pickupAddress: z.string().min(1, "Pickup address is required"),
-  dropoffAddress: z.string().min(1, "Dropoff address is required"),
-  packageDetails: z.string().min(1, "Package details are required"),
-  recipientName: z.string().min(1, "Recipient name is required"),
-  recipientPhone: z.string().min(10, "Valid phone number is required"),
-});
+import { ParcelDeliveryForm, ParcelDeliveryFormData } from "@/components/parcel/ParcelDeliveryForm";
 
 const ParcelDelivery = () => {
   const navigate = useNavigate();
@@ -34,18 +14,7 @@ const ParcelDelivery = () => {
   const { session } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      pickupAddress: "",
-      dropoffAddress: "",
-      packageDetails: "",
-      recipientName: "",
-      recipientPhone: "",
-    },
-  });
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+  const handleSubmit = async (values: ParcelDeliveryFormData) => {
     if (!session?.user) {
       toast({
         title: "Authentication Required",
@@ -57,6 +26,10 @@ const ParcelDelivery = () => {
 
     setIsSubmitting(true);
     try {
+      const estimatedDeliveryTime = new Date();
+      estimatedDeliveryTime.setHours(estimatedDeliveryTime.getHours() + 
+        (values.priority === 'express' ? 2 : 4));
+
       const { error } = await supabase.from('parcel_deliveries').insert({
         user_id: session.user.id,
         pickup_address: values.pickupAddress,
@@ -64,6 +37,12 @@ const ParcelDelivery = () => {
         package_details: values.packageDetails,
         recipient_name: values.recipientName,
         recipient_phone: values.recipientPhone,
+        sender_name: values.senderName,
+        sender_phone: values.senderPhone,
+        weight_category: values.weightCategory,
+        priority: values.priority,
+        estimated_delivery_time: estimatedDeliveryTime.toISOString(),
+        delivery_instructions: values.deliveryInstructions,
       });
 
       if (error) throw error;
@@ -100,107 +79,17 @@ const ParcelDelivery = () => {
           Back to Home
         </Button>
 
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <Package className="w-16 h-16 mx-auto mb-6 text-primary" />
             <h1 className="text-3xl font-bold mb-4">Send a Parcel</h1>
             <p className="text-gray-600">
-              Fill in the details below to schedule your parcel delivery
+              Fast and reliable parcel delivery at your fingertips
             </p>
           </div>
 
           <div className="bg-white rounded-xl shadow-sm p-6">
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                <FormField
-                  control={form.control}
-                  name="pickupAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Pickup Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter pickup address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="dropoffAddress"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Dropoff Address</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter dropoff address" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="packageDetails"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Package Details</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Describe your package (size, weight, contents, etc.)" 
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="recipientName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recipient Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter recipient's full name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="recipientPhone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Recipient Phone Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter recipient's phone number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Button 
-                  type="submit" 
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    'Schedule Delivery'
-                  )}
-                </Button>
-              </form>
-            </Form>
+            <ParcelDeliveryForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
           </div>
         </div>
       </main>
