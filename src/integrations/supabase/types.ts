@@ -80,10 +80,13 @@ export type Database = {
           created_at: string
           delivery_instructions: string | null
           dropoff_address: string
+          dropoff_coordinates: unknown | null
           estimated_delivery_time: string | null
+          estimated_fare: number | null
           id: string
           package_details: string
           pickup_address: string
+          pickup_coordinates: unknown | null
           priority: string | null
           recipient_name: string
           recipient_phone: string
@@ -98,10 +101,13 @@ export type Database = {
           created_at?: string
           delivery_instructions?: string | null
           dropoff_address: string
+          dropoff_coordinates?: unknown | null
           estimated_delivery_time?: string | null
+          estimated_fare?: number | null
           id?: string
           package_details: string
           pickup_address: string
+          pickup_coordinates?: unknown | null
           priority?: string | null
           recipient_name: string
           recipient_phone: string
@@ -116,10 +122,13 @@ export type Database = {
           created_at?: string
           delivery_instructions?: string | null
           dropoff_address?: string
+          dropoff_coordinates?: unknown | null
           estimated_delivery_time?: string | null
+          estimated_fare?: number | null
           id?: string
           package_details?: string
           pickup_address?: string
+          pickup_coordinates?: unknown | null
           priority?: string | null
           recipient_name?: string
           recipient_phone?: string
@@ -211,6 +220,8 @@ export type Database = {
       }
       vehicle_rentals: {
         Row: {
+          admin_email: string | null
+          approval_status: string | null
           created_at: string | null
           end_date: string
           id: string
@@ -224,6 +235,8 @@ export type Database = {
           vehicle_type: string
         }
         Insert: {
+          admin_email?: string | null
+          approval_status?: string | null
           created_at?: string | null
           end_date: string
           id?: string
@@ -237,6 +250,8 @@ export type Database = {
           vehicle_type: string
         }
         Update: {
+          admin_email?: string | null
+          approval_status?: string | null
           created_at?: string | null
           end_date?: string
           id?: string

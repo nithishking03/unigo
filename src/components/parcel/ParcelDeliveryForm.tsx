@@ -11,7 +11,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { LocationInput } from "@/components/LocationInput";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -21,6 +20,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import LocationSection from "./LocationSection";
+import FareCalculator from "./FareCalculator";
+import { useState } from "react";
 
 const formSchema = z.object({
   pickupAddress: z.string().min(1, "Pickup address is required"),
@@ -38,11 +40,19 @@ const formSchema = z.object({
 export type ParcelDeliveryFormData = z.infer<typeof formSchema>;
 
 interface ParcelDeliveryFormProps {
-  onSubmit: (data: ParcelDeliveryFormData) => Promise<void>;
+  onSubmit: (data: ParcelDeliveryFormData & {
+    pickupCoordinates?: { lat: number; lng: number };
+    dropoffCoordinates?: { lat: number; lng: number };
+    estimatedFare?: number;
+  }) => Promise<void>;
   isSubmitting: boolean;
 }
 
 export const ParcelDeliveryForm = ({ onSubmit, isSubmitting }: ParcelDeliveryFormProps) => {
+  const [pickupCoordinates, setPickupCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [dropoffCoordinates, setDropoffCoordinates] = useState<{ lat: number; lng: number } | null>(null);
+  const [distance, setDistance] = useState(0);
+
   const form = useForm<ParcelDeliveryFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,29 +69,29 @@ export const ParcelDeliveryForm = ({ onSubmit, isSubmitting }: ParcelDeliveryFor
     },
   });
 
+  const handleSubmit = async (data: ParcelDeliveryFormData) => {
+    await onSubmit({
+      ...data,
+      pickupCoordinates: pickupCoordinates || undefined,
+      dropoffCoordinates: dropoffCoordinates || undefined,
+      estimatedFare: distance > 0 ? calculateFare(distance, data.weightCategory, data.priority) : undefined,
+    });
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <LocationSection
+          control={form.control}
+          pickupCoordinates={pickupCoordinates}
+          dropoffCoordinates={dropoffCoordinates}
+          setPickupCoordinates={setPickupCoordinates}
+          setDropoffCoordinates={setDropoffCoordinates}
+          onDistanceChange={setDistance}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="pickupAddress"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Pickup Address</FormLabel>
-                  <FormControl>
-                    <LocationInput
-                      placeholder="Enter pickup address"
-                      value={field.value}
-                      onChange={(value) => field.onChange(value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="senderName"
@@ -112,24 +122,6 @@ export const ParcelDeliveryForm = ({ onSubmit, isSubmitting }: ParcelDeliveryFor
           </div>
 
           <div className="space-y-6">
-            <FormField
-              control={form.control}
-              name="dropoffAddress"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dropoff Address</FormLabel>
-                  <FormControl>
-                    <LocationInput
-                      placeholder="Enter dropoff address"
-                      value={field.value}
-                      onChange={(value) => field.onChange(value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="recipientName"
@@ -206,6 +198,14 @@ export const ParcelDeliveryForm = ({ onSubmit, isSubmitting }: ParcelDeliveryFor
             )}
           />
         </div>
+
+        {distance > 0 && (
+          <FareCalculator
+            distance={distance}
+            weightCategory={form.watch("weightCategory")}
+            priority={form.watch("priority")}
+          />
+        )}
 
         <FormField
           control={form.control}

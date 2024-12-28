@@ -14,7 +14,11 @@ const ParcelDelivery = () => {
   const { session } = useAuth();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const handleSubmit = async (values: ParcelDeliveryFormData) => {
+  const handleSubmit = async (values: ParcelDeliveryFormData & {
+    pickupCoordinates?: { lat: number; lng: number };
+    dropoffCoordinates?: { lat: number; lng: number };
+    estimatedFare?: number;
+  }) => {
     if (!session?.user) {
       toast({
         title: "Authentication Required",
@@ -43,6 +47,11 @@ const ParcelDelivery = () => {
         priority: values.priority,
         estimated_delivery_time: estimatedDeliveryTime.toISOString(),
         delivery_instructions: values.deliveryInstructions,
+        pickup_coordinates: values.pickupCoordinates ? 
+          `(${values.pickupCoordinates.lng},${values.pickupCoordinates.lat})` : null,
+        dropoff_coordinates: values.dropoffCoordinates ? 
+          `(${values.dropoffCoordinates.lng},${values.dropoffCoordinates.lat})` : null,
+        estimated_fare: values.estimatedFare || 0,
       });
 
       if (error) throw error;
