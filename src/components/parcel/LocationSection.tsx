@@ -4,7 +4,7 @@ import { LocationInput } from "@/components/LocationInput";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { calculateDistance } from "@/utils/distance";
 
 interface LocationSectionProps {
@@ -97,6 +97,9 @@ const LocationSection: React.FC<LocationSectionProps> = ({
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[600px]">
+                    <DialogDescription className="sr-only">
+                      Select pickup location on the map
+                    </DialogDescription>
                     <MapLocationPicker
                       onLocationSelect={handleLocationSelect}
                       defaultCenter={pickupCoordinates ? [pickupCoordinates.lng, pickupCoordinates.lat] : undefined}
@@ -152,6 +155,9 @@ const LocationSection: React.FC<LocationSectionProps> = ({
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="sm:max-w-[600px]">
+                    <DialogDescription className="sr-only">
+                      Select dropoff location on the map
+                    </DialogDescription>
                     <MapLocationPicker
                       onLocationSelect={handleLocationSelect}
                       defaultCenter={dropoffCoordinates ? [dropoffCoordinates.lng, dropoffCoordinates.lat] : undefined}
