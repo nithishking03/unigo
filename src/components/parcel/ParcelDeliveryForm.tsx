@@ -21,8 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import LocationSection from "./LocationSection";
-import FareCalculator from "./FareCalculator";
-import { calculateFare } from "./FareCalculator";  // Add this import
+import FareCalculator, { calculateFare } from "./FareCalculator";
 import { useState } from "react";
 
 const formSchema = z.object({
