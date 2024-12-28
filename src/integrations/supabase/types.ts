@@ -9,6 +9,30 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      admin_notifications: {
+        Row: {
+          content: Json
+          created_at: string
+          id: string
+          is_read: boolean | null
+          type: string
+        }
+        Insert: {
+          content: Json
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          type: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          type?: string
+        }
+        Relationships: []
+      }
       drivers: {
         Row: {
           average_rating: number | null
@@ -48,6 +72,45 @@ export type Database = {
           user_id?: string
           vehicle_number?: string
           vehicle_type?: Database["public"]["Enums"]["ride_type"]
+        }
+        Relationships: []
+      }
+      parcel_deliveries: {
+        Row: {
+          created_at: string
+          dropoff_address: string
+          id: string
+          package_details: string
+          pickup_address: string
+          recipient_name: string
+          recipient_phone: string
+          status: Database["public"]["Enums"]["parcel_status"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dropoff_address: string
+          id?: string
+          package_details: string
+          pickup_address: string
+          recipient_name: string
+          recipient_phone: string
+          status?: Database["public"]["Enums"]["parcel_status"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dropoff_address?: string
+          id?: string
+          package_details?: string
+          pickup_address?: string
+          recipient_name?: string
+          recipient_phone?: string
+          status?: Database["public"]["Enums"]["parcel_status"] | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -178,6 +241,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
+      parcel_status: "pending" | "in_transit" | "delivered" | "cancelled"
       rental_status: "pending" | "confirmed" | "completed" | "cancelled"
       ride_status:
         | "pending"

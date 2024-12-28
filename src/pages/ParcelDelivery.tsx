@@ -1,11 +1,11 @@
 import React from 'react';
 import { NavBar } from "@/components/NavBar";
-import { Package, ArrowLeft } from "lucide-react";
+import { Package, ArrowLeft, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Form,
@@ -18,6 +18,7 @@ import {
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth } from "@/components/AuthProvider";
 
 const formSchema = z.object({
   pickupAddress: z.string().min(1, "Pickup address is required"),
@@ -30,6 +31,8 @@ const formSchema = z.object({
 const ParcelDelivery = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { session } = useAuth();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,14 +46,24 @@ const ParcelDelivery = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!session?.user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to send parcels",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('ride_requests').insert({
+      const { error } = await supabase.from('parcel_deliveries').insert({
+        user_id: session.user.id,
         pickup_address: values.pickupAddress,
         dropoff_address: values.dropoffAddress,
-        ride_type: 'bike',
-        pickup_location: '(0,0)', // We'll update this with actual coordinates later
-        dropoff_location: '(0,0)', // We'll update this with actual coordinates later
-        user_id: '123', // We'll update this with actual user ID once auth is implemented
+        package_details: values.packageDetails,
+        recipient_name: values.recipientName,
+        recipient_phone: values.recipientPhone,
       });
 
       if (error) throw error;
@@ -62,11 +75,14 @@ const ParcelDelivery = () => {
 
       navigate('/');
     } catch (error) {
+      console.error('Submission error:', error);
       toast({
         title: "Error",
         description: "Failed to submit delivery request. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -169,8 +185,19 @@ const ParcelDelivery = () => {
                   )}
                 />
 
-                <Button type="submit" className="w-full">
-                  Schedule Delivery
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Schedule Delivery'
+                  )}
                 </Button>
               </form>
             </Form>

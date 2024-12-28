@@ -6,11 +6,11 @@ import { ArrowLeft, Bike, Car, Calendar, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { LocationInput } from "@/components/LocationInput";
 import { DatePicker } from "@/components/DatePicker";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInDays } from "date-fns";
-import { Tables } from "@/integrations/supabase/types";
+import { RentalHistory } from "@/components/RentalHistory";
 
 type VehicleType = "car" | "bike";
 
@@ -59,6 +59,12 @@ const Travel = () => {
     },
   ];
 
+  const calculateTotalPrice = (pricePerDay: number) => {
+    if (!startDate || !endDate) return null;
+    const days = differenceInDays(endDate, startDate) + 1;
+    return days > 0 ? pricePerDay * days : null;
+  };
+
   const handleBooking = async (vehicleType: VehicleType, model: string, pricePerDay: number) => {
     if (!location || !startDate || !endDate) {
       toast({
@@ -78,8 +84,8 @@ const Travel = () => {
       return;
     }
 
-    const days = differenceInDays(endDate, startDate) + 1;
-    if (days < 1) {
+    const totalAmount = calculateTotalPrice(pricePerDay);
+    if (!totalAmount) {
       toast({
         title: "Invalid Dates",
         description: "End date must be after start date",
@@ -92,22 +98,18 @@ const Travel = () => {
     setSelectedVehicle({ type: vehicleType, model, price: pricePerDay });
 
     try {
-      const rental: Omit<Tables<'vehicle_rentals'>, 'id' | 'created_at' | 'updated_at'> = {
-        user_id: session.user.id,
-        vehicle_type: vehicleType,
-        vehicle_model: model,
-        pickup_location: location,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
-        total_amount: pricePerDay * days,
-        status: 'pending'
-      };
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('vehicle_rentals')
-        .insert(rental)
-        .select()
-        .single();
+        .insert({
+          user_id: session.user.id,
+          vehicle_type: vehicleType,
+          vehicle_model: model,
+          pickup_location: location,
+          start_date: startDate.toISOString(),
+          end_date: endDate.toISOString(),
+          total_amount: totalAmount,
+          status: 'pending'
+        });
 
       if (error) throw error;
 
@@ -197,20 +199,24 @@ const Travel = () => {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
-                  {vehicle.options.map((option) => (
-                    <div
-                      key={option.name}
-                      className="flex items-center justify-between p-4 rounded-lg border hover:border-primary/20 hover:bg-primary/5 transition-colors"
-                    >
-                      <div>
-                        <h3 className="font-semibold">{option.name}</h3>
-                        <p className="text-sm text-gray-500">Available Now</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-primary">₹{option.price}/day</p>
+                  {vehicle.options.map((option) => {
+                    const totalPrice = calculateTotalPrice(option.price);
+                    return (
+                      <div
+                        key={option.name}
+                        className="flex items-center justify-between p-4 rounded-lg border hover:border-primary/20 hover:bg-primary/5 transition-colors"
+                      >
+                        <div>
+                          <h3 className="font-semibold">{option.name}</h3>
+                          <p className="text-sm text-gray-500">₹{option.price}/day</p>
+                          {totalPrice && (
+                            <p className="text-sm font-medium text-primary">
+                              Total: ₹{totalPrice}
+                            </p>
+                          )}
+                        </div>
                         <Button
                           size="sm"
-                          className="mt-2"
                           onClick={() => handleBooking(vehicle.type, option.name, option.price)}
                           disabled={isBooking && selectedVehicle?.model === option.name}
                         >
@@ -224,12 +230,16 @@ const Travel = () => {
                           )}
                         </Button>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        <div className="mt-12">
+          <RentalHistory />
         </div>
       </main>
     </div>
