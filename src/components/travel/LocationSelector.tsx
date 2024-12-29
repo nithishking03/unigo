@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { LocationInput } from "@/components/LocationInput";
 import { MapPin } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
 
 interface LocationDetails {
   fullAddress: string;
@@ -35,15 +36,36 @@ export const LocationSelector = ({
     state: "",
     postalCode: "",
   });
+  const { toast } = useToast();
 
-  const handleLocationSelect = (value: string) => {
+  const handleLocationSelect = (value: string, coordinates?: { lat: string; lon: string }) => {
     onLocationChange(value);
     setShowDetails(true);
-    setDetails(prev => ({ ...prev, fullAddress: value }));
+    setDetails(prev => ({
+      ...prev, 
+      fullAddress: value,
+      // Attempt to parse coordinates if available
+      streetNumber: coordinates ? coordinates.lat : "",
+      street: coordinates ? coordinates.lon : "",
+    }));
   };
 
   const handleDetailsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    const requiredFields = ['streetNumber', 'street', 'city', 'state', 'postalCode'];
+    const missingFields = requiredFields.filter(field => !details[field]);
+
+    if (missingFields.length > 0) {
+      toast({
+        title: "Missing Information",
+        description: `Please fill in: ${missingFields.join(', ')}`,
+        variant: "destructive"
+      });
+      return;
+    }
+
     onDetailsSubmit(details);
     setShowDetails(false);
   };
@@ -58,14 +80,27 @@ export const LocationSelector = ({
             );
             const data = await response.json();
             if (data.results[0]) {
-              handleLocationSelect(data.results[0].formatted_address);
+              handleLocationSelect(data.results[0].formatted_address, {
+                lat: position.coords.latitude.toString(),
+                lon: position.coords.longitude.toString()
+              });
             }
           } catch (error) {
             console.error("Error getting location details:", error);
+            toast({
+              title: "Location Error",
+              description: "Could not retrieve location details",
+              variant: "destructive"
+            });
           }
         },
         (error) => {
           console.error("Error getting location:", error);
+          toast({
+            title: "Location Access Denied",
+            description: "Please enable location access or enter location manually",
+            variant: "destructive"
+          });
         }
       );
     }
@@ -85,7 +120,9 @@ export const LocationSelector = ({
             <LocationInput
               placeholder="Enter pick-up location"
               value={location}
-              onChange={handleLocationSelect}
+              onChange={(value, coordinates) => {
+                handleLocationSelect(value, coordinates);
+              }}
             />
             <Button
               type="button"
