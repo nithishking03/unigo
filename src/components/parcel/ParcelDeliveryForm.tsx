@@ -83,6 +83,7 @@ export const ParcelDeliveryForm = ({ onSubmit, isSubmitting }: ParcelDeliveryFor
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <LocationSection
           control={form.control}
+          form={form}
           pickupCoordinates={pickupCoordinates}
           dropoffCoordinates={dropoffCoordinates}
           setPickupCoordinates={setPickupCoordinates}

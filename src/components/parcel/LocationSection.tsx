@@ -7,9 +7,11 @@ import MapLocationPicker from "./MapLocationPicker";
 import { Dialog, DialogContent, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { calculateDistance } from "@/utils/distance";
 import { AddressDetailsForm } from "./AddressDetailsForm";
+import { UseFormReturn } from "react-hook-form";
 
 interface LocationSectionProps {
   control: any;
+  form: UseFormReturn<any>;
   pickupCoordinates: { lat: number; lng: number } | null;
   dropoffCoordinates: { lat: number; lng: number } | null;
   setPickupCoordinates: (coords: { lat: number; lng: number } | null) => void;
@@ -19,6 +21,7 @@ interface LocationSectionProps {
 
 export const LocationSection = ({
   control,
+  form,
   pickupCoordinates,
   dropoffCoordinates,
   setPickupCoordinates,
@@ -113,7 +116,7 @@ export const LocationSection = ({
               </div>
               {showPickupDetails && (
                 <AddressDetailsForm
-                  form={control._formState.form}
+                  form={form}
                   type="pickup"
                   onSubmit={() => setShowPickupDetails(false)}
                 />
@@ -179,7 +182,7 @@ export const LocationSection = ({
               </div>
               {showDropoffDetails && (
                 <AddressDetailsForm
-                  form={control._formState.form}
+                  form={form}
                   type="dropoff"
                   onSubmit={() => setShowDropoffDetails(false)}
                 />
