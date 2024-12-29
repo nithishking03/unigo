@@ -6,6 +6,7 @@ import { MapPin } from "lucide-react";
 import MapLocationPicker from "./MapLocationPicker";
 import { Dialog, DialogContent, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { calculateDistance } from "@/utils/distance";
+import { AddressDetailsForm } from "./AddressDetailsForm";
 
 interface LocationSectionProps {
   control: any;
@@ -16,15 +17,17 @@ interface LocationSectionProps {
   onDistanceChange: (distance: number) => void;
 }
 
-const LocationSection: React.FC<LocationSectionProps> = ({
+export const LocationSection = ({
   control,
   pickupCoordinates,
   dropoffCoordinates,
   setPickupCoordinates,
   setDropoffCoordinates,
   onDistanceChange
-}) => {
+}: LocationSectionProps) => {
   const [activeLocation, setActiveLocation] = useState<'pickup' | 'dropoff' | null>(null);
+  const [showPickupDetails, setShowPickupDetails] = useState(false);
+  const [showDropoffDetails, setShowDropoffDetails] = useState(false);
 
   const handleLocationSelect = (coordinates: { lat: number; lng: number }) => {
     if (activeLocation === 'pickup') {
@@ -72,6 +75,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
                       if (coordinates) {
                         const coords = { lat: Number(coordinates.lat), lng: Number(coordinates.lon) };
                         setPickupCoordinates(coords);
+                        setShowPickupDetails(true);
                         if (dropoffCoordinates) {
                           const distance = calculateDistance(
                             coords.lat,
@@ -107,6 +111,13 @@ const LocationSection: React.FC<LocationSectionProps> = ({
                   </DialogContent>
                 </Dialog>
               </div>
+              {showPickupDetails && (
+                <AddressDetailsForm
+                  form={control._formState.form}
+                  type="pickup"
+                  onSubmit={() => setShowPickupDetails(false)}
+                />
+              )}
               <FormMessage />
             </FormItem>
           )}
@@ -130,6 +141,7 @@ const LocationSection: React.FC<LocationSectionProps> = ({
                       if (coordinates) {
                         const coords = { lat: Number(coordinates.lat), lng: Number(coordinates.lon) };
                         setDropoffCoordinates(coords);
+                        setShowDropoffDetails(true);
                         if (pickupCoordinates) {
                           const distance = calculateDistance(
                             pickupCoordinates.lat,
@@ -165,6 +177,13 @@ const LocationSection: React.FC<LocationSectionProps> = ({
                   </DialogContent>
                 </Dialog>
               </div>
+              {showDropoffDetails && (
+                <AddressDetailsForm
+                  form={control._formState.form}
+                  type="dropoff"
+                  onSubmit={() => setShowDropoffDetails(false)}
+                />
+              )}
               <FormMessage />
             </FormItem>
           )}
