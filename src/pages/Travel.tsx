@@ -4,13 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Bike, Car, Calendar, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { LocationInput } from "@/components/LocationInput";
 import { DatePicker } from "@/components/DatePicker";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { differenceInDays } from "date-fns";
 import { RentalHistory } from "@/components/RentalHistory";
+import { LocationSelector } from "@/components/travel/LocationSelector";
 
 type VehicleType = "car" | "bike";
 
@@ -25,10 +25,20 @@ interface VehicleCategory {
   options: VehicleOption[];
 }
 
+interface LocationDetails {
+  fullAddress: string;
+  streetNumber: string;
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+}
+
 const Travel = () => {
   const { toast } = useToast();
   const { session } = useAuth();
   const [location, setLocation] = useState("");
+  const [locationDetails, setLocationDetails] = useState<LocationDetails | null>(null);
   const [startDate, setStartDate] = useState<Date>();
   const [endDate, setEndDate] = useState<Date>();
   const [isBooking, setIsBooking] = useState(false);
@@ -66,7 +76,7 @@ const Travel = () => {
   };
 
   const handleBooking = async (vehicleType: VehicleType, model: string, pricePerDay: number) => {
-    if (!location || !startDate || !endDate) {
+    if (!locationDetails || !startDate || !endDate) {
       toast({
         title: "Missing Information",
         description: "Please fill in all the required fields",
@@ -98,13 +108,15 @@ const Travel = () => {
     setSelectedVehicle({ type: vehicleType, model, price: pricePerDay });
 
     try {
+      const formattedLocation = `${locationDetails.streetNumber} ${locationDetails.street}, ${locationDetails.city}, ${locationDetails.state} ${locationDetails.postalCode}`;
+      
       const { error } = await supabase
         .from('vehicle_rentals')
         .insert({
           user_id: session.user.id,
           vehicle_type: vehicleType,
           vehicle_model: model,
-          pickup_location: location,
+          pickup_location: formattedLocation,
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           total_amount: totalAmount,
@@ -120,6 +132,7 @@ const Travel = () => {
 
       // Reset form
       setLocation("");
+      setLocationDetails(null);
       setStartDate(undefined);
       setEndDate(undefined);
       setSelectedVehicle(null);
@@ -150,21 +163,11 @@ const Travel = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Pick-up Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <LocationInput
-                placeholder="Enter pick-up location"
-                value={location}
-                onChange={setLocation}
-              />
-            </CardContent>
-          </Card>
+          <LocationSelector
+            location={location}
+            onLocationChange={setLocation}
+            onDetailsSubmit={setLocationDetails}
+          />
 
           <Card>
             <CardHeader>
