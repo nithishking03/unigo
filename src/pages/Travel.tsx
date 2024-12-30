@@ -8,7 +8,7 @@ import { DatePicker } from "@/components/DatePicker";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
-import { differenceInDays } from "date-fns";
+import { differenceInDays, isBefore, isToday } from "date-fns";
 import { RentalHistory } from "@/components/RentalHistory";
 import { LocationSelector } from "@/components/travel/LocationSelector";
 
@@ -69,6 +69,37 @@ const Travel = () => {
     },
   ];
 
+  const validateDates = (start: Date | undefined, end: Date | undefined): boolean => {
+    if (!start || !end) {
+      toast({
+        title: "Missing Dates",
+        description: "Please select both start and end dates",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (isBefore(end, start)) {
+      toast({
+        title: "Invalid Dates",
+        description: "End date must be after start date",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    if (isBefore(start, new Date()) && !isToday(start)) {
+      toast({
+        title: "Invalid Start Date",
+        description: "Start date cannot be in the past",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const calculateTotalPrice = (pricePerDay: number) => {
     if (!startDate || !endDate) return null;
     const days = differenceInDays(endDate, startDate) + 1;
@@ -85,6 +116,10 @@ const Travel = () => {
       return;
     }
 
+    if (!validateDates(startDate, endDate)) {
+      return;
+    }
+
     if (!session?.user) {
       toast({
         title: "Authentication Required",
@@ -98,7 +133,7 @@ const Travel = () => {
     if (!totalAmount) {
       toast({
         title: "Invalid Dates",
-        description: "End date must be after start date",
+        description: "Please select valid rental dates",
         variant: "destructive",
       });
       return;
@@ -120,7 +155,8 @@ const Travel = () => {
           start_date: startDate.toISOString(),
           end_date: endDate.toISOString(),
           total_amount: totalAmount,
-          status: 'pending'
+          status: 'pending',
+          admin_email: 'your-email@example.com' // Replace this with your email
         });
 
       if (error) throw error;
